@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=product_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - product-network
+      - customer-network
+
+  postgres-customer:
+    image: postgres:14-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=customer_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_customer_data:/var/lib/postgresql/data
+    networks:
+      - customer-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - product-network
+      - customer-network
+
+  product-service:
+    build: ./product-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+      - SERVER_SERVLET_CONTEXT_PATH=/api
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/product_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_CACHE_TYPE=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_TIMEOUT=2000
+      - SPRING_DATA_REDIS_CONNECT_TIMEOUT=2000
+      - RESILIENCE4J_RATELIMITER_INSTANCES_PRODUCTSERVICE_LIMITFORPERIOD=100
+      - RESILIENCE4J_RATELIMITER_INSTANCES_PRODUCTSERVICE_LIMITREFRESHPERIOD=60s
+      - RESILIENCE4J_RATELIMITER_INSTANCES_PRODUCTSERVICE_TIMEOUTDURATION=3s
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEV_PRODUCTSERVICE=DEBUG
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - product-network
+
+  customer-service:
+    build: ./customer-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVER_PORT=8082
+      - SERVER_SERVLET_CONTEXT_PATH=/api
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-customer:5432/customer_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_CACHE_TYPE=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_TIMEOUT=2000
+      - SPRING_DATA_REDIS_CONNECT_TIMEOUT=2000
+      - RESILIENCE4J_RATELIMITER_INSTANCES_CUSTOMERSERVICE_LIMITFORPERIOD=100
+      - RESILIENCE4J_RATELIMITER_INSTANCES_CUSTOMERSERVICE_LIMITREFRESHPERIOD=60s
+      - RESILIENCE4J_RATELIMITER_INSTANCES_CUSTOMERSERVICE_TIMEOUTDURATION=3s
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEV_CUSTOMERSERVICE=DEBUG
+    depends_on:
+      - postgres-customer
+      - redis
+    networks:
+      - customer-network
+
+volumes:
+  postgres_data:
+  postgres_customer_data:
+  redis_data:
+
+networks:
+  product-network:
+    driver: bridge
+  customer-network:
+    driver: bridge
