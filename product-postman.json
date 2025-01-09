@@ -1,0 +1,116 @@
+{
+    "info": {
+        "name": "Product Service API",
+        "description": "Collection for testing Product Service endpoints",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Create Product",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8081/api/products",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": {
+                        "sku": "PROD-001",
+                        "name": "iPhone 14 Pro",
+                        "description": "Latest iPhone model with advanced features",
+                        "price": 999.99,
+                        "stockQuantity": 100
+                    }
+                }
+            }
+        },
+        {
+            "name": "Get All Products",
+            "request": {
+                "method": "GET",
+                "url": "http://localhost:8081/api/products"
+            }
+        },
+        {
+            "name": "Get Product by ID",
+            "request": {
+                "method": "GET",
+                "url": "http://localhost:8081/api/products/1"
+            }
+        },
+        {
+            "name": "Update Product",
+            "request": {
+                "method": "PUT",
+                "url": "http://localhost:8081/api/products/1",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": {
+                        "sku": "PROD-001",
+                        "name": "iPhone 14 Pro Max",
+                        "description": "Updated iPhone model with advanced features",
+                        "price": 1099.99,
+                        "stockQuantity": 95
+                    }
+                }
+            }
+        },
+        {
+            "name": "Delete Product",
+            "request": {
+                "method": "DELETE",
+                "url": "http://localhost:8081/api/products/1"
+            }
+        },
+        {
+            "name": "Deduct Stock",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8081/api/products/1/deduct-stock",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": {
+                        "productId": 1,
+                        "quantity": 5
+                    }
+                }
+            }
+        },
+        {
+            "name": "Restore Stock",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8081/api/products/1/restore-stock",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": {
+                        "productId": 1,
+                        "quantity": 5
+                    }
+                }
+            }
+        }
+    ]
+}

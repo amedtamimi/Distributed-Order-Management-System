@@ -1,0 +1,92 @@
+{
+    "info": {
+        "name": "Customer Service API",
+        "description": "Collection for testing Customer Service endpoints",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Create Customer",
+            "request": {
+                "method": "POST",
+                "url": "http://localhost:8082/api/customers",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": {
+                        "firstName": "John",
+                        "lastName": "Doe",
+                        "email": "john.doe@example.com",
+                        "phone": "+1234567890",
+                        "address": "123 Main St, City, Country",
+                        "active": true
+                    }
+                }
+            }
+        },
+        {
+            "name": "Get All Customers",
+            "request": {
+                "method": "GET",
+                "url": "http://localhost:8082/api/customers"
+            }
+        },
+        {
+            "name": "Get Customer by ID",
+            "request": {
+                "method": "GET",
+                "url": "http://localhost:8082/api/customers/1"
+            }
+        },
+        {
+            "name": "Update Customer",
+            "request": {
+                "method": "PUT",
+                "url": "http://localhost:8082/api/customers/1",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": {
+                        "firstName": "John",
+                        "lastName": "Doe Updated",
+                        "email": "john.doe@example.com",
+                        "phone": "+1234567890",
+                        "address": "456 New St, City, Country",
+                        "active": true
+                    }
+                }
+            }
+        },
+        {
+            "name": "Delete Customer",
+            "request": {
+                "method": "DELETE",
+                "url": "http://localhost:8082/api/customers/1"
+            }
+        },
+        {
+            "name": "Search Customers",
+            "request": {
+                "method": "GET",
+                "url": "http://localhost:8082/api/customers/search?keyword=john"
+            }
+        },
+        {
+            "name": "Get Active Customers",
+            "request": {
+                "method": "GET",
+                "url": "http://localhost:8082/api/customers/active"
+            }
+        }
+    ]
+}

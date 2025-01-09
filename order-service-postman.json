@@ -1,0 +1,115 @@
+{
+	"info": {
+		"_postman_id": "your-collection-id",
+		"name": "Order Service API",
+		"description": "Collection for testing Order Service endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": {
+						"customerId": 1,
+						"items": [
+							{
+								"productId": 1,
+								"quantity": 2,
+								"unitPrice": 99.99
+							},
+							{
+								"productId": 2,
+								"quantity": 1,
+								"unitPrice": 49.99
+							}
+						],
+						"totalAmount": 249.97,
+						"notes": "Please deliver during business hours"
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8083/api/orders",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8083",
+					"path": ["api", "orders"]
+				}
+			}
+		},
+		{
+			"name": "Get Order by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/orders/1",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8083",
+					"path": ["api", "orders", "1"]
+				}
+			}
+		},
+		{
+			"name": "Get Orders by Customer",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/orders/customer/1",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8083",
+					"path": ["api", "orders", "customer", "1"]
+				}
+			}
+		},
+		{
+			"name": "Get Orders by Date Range",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/orders/date-range?startDate=2024-01-01T00:00:00&endDate=2024-12-31T23:59:59",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8083",
+					"path": ["api", "orders", "date-range"],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2024-01-01T00:00:00"
+						},
+						{
+							"key": "endDate",
+							"value": "2024-12-31T23:59:59"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "Cancel Order",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8083/api/orders/1/cancel",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8083",
+					"path": ["api", "orders", "1", "cancel"]
+				}
+			}
+		}
+	]
+}
