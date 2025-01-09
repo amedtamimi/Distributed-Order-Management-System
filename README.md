@@ -2,24 +2,6 @@
 
 A microservices-based order management system built with Spring Boot, implementing a distributed architecture for handling products, customers, and orders.
 
-## System Architecture
-
-The system consists of three main microservices:
-1. **Product Service** (Port: 8081): Manages product inventory and stock
-2. **Customer Service** (Port: 8082): Handles customer information
-3. **Order Service** (Port: 8083): Processes orders and orchestrates between services
-
-## Features
-
-- Distributed microservices architecture
-- Redis caching for improved performance
-- Rate limiting with Resilience4j
-- Circuit breaker pattern implementation
-- PostgreSQL databases for persistence
-- RESTful APIs with proper validation
-- Docker containerization
-- Feign clients for inter-service communication
-
 ## Prerequisites
 
 - Docker and Docker Compose
