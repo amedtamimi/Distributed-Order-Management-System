@@ -11,9 +11,13 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - product-network
-      - customer-network
+      - shared-network
 
   postgres-customer:
     image: postgres:14-alpine
@@ -25,8 +29,31 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres_customer_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - customer-network
+      - shared-network
+
+  postgres-order:
+    image: postgres:14-alpine
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_DB=order_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shared-network
 
   redis:
     image: redis:alpine
@@ -34,9 +61,13 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - product-network
-      - customer-network
+      - shared-network
 
   product-service:
     build: ./product-service
@@ -62,11 +93,19 @@ services:
       - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEV_PRODUCTSERVICE=DEBUG
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
-      - product-network
+      - shared-network
 
   customer-service:
     build: ./customer-service
@@ -92,19 +131,83 @@ services:
       - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_DEV_CUSTOMERSERVICE=DEBUG
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     depends_on:
-      - postgres-customer
-      - redis
+      postgres-customer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
-      - customer-network
+      - shared-network
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SERVER_PORT=8083
+      - SERVER_SERVLET_CONTEXT_PATH=/api
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/order_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_CACHE_TYPE=redis
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_TIMEOUT=2000
+      - SPRING_DATA_REDIS_CONNECT_TIMEOUT=2000
+      - CLIENT_CUSTOMER_SERVICE_URL=http://localhost:8082
+      - CLIENT_PRODUCT_SERVICE_URL=http://localhost:8081
+      - RESILIENCE4J_RATELIMITER_INSTANCES_ORDERSERVICE_LIMITFORPERIOD=100
+      - RESILIENCE4J_RATELIMITER_INSTANCES_ORDERSERVICE_LIMITREFRESHPERIOD=60s
+      - RESILIENCE4J_RATELIMITER_INSTANCES_ORDERSERVICE_TIMEOUTDURATION=3s
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_COM_DEV_ORDERSERVICE=DEBUG
+      # Add Feign client configuration
+      - FEIGN_CLIENT_CONFIG_DEFAULT_CONNECTTIMEOUT=5000
+      - FEIGN_CLIENT_CONFIG_DEFAULT_READTIMEOUT=5000
+      - FEIGN_CLIENT_CONFIG_DEFAULT_LOGGERLEVEL=FULL
+      - FEIGN_CIRCUITBREAKER_ENABLED=true
+      # Add Circuit Breaker configuration
+      - RESILIENCE4J_CIRCUITBREAKER_INSTANCES_DEFAULT_SLIDINGWINDOWSIZE=10
+      - RESILIENCE4J_CIRCUITBREAKER_INSTANCES_DEFAULT_FAILURERATEETHRESHOLD=50
+      - RESILIENCE4J_CIRCUITBREAKER_INSTANCES_DEFAULT_WAITDURATIONINOPENSTATE=10s
+      - RESILIENCE4J_CIRCUITBREAKER_INSTANCES_DEFAULT_PERMITTEDNUMBEROFCALLSINHALFOPSTATE=3
+      - RESILIENCE4J_CIRCUITBREAKER_INSTANCES_DEFAULT_REGISTERHEALTHINDICATOR=true
+      - RESILIENCE4J_CIRCUITBREAKER_INSTANCES_DEFAULT_SLOWCALLDURATIONTHRESHOLD=2s
+      - RESILIENCE4J_CIRCUITBREAKER_INSTANCES_DEFAULT_SLOWCALLRATETHRESHOLD=50
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/api/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres-order:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+    networks:
+      - shared-network
 
 volumes:
   postgres_data:
   postgres_customer_data:
+  postgres_order_data:
   redis_data:
 
 networks:
-  product-network:
-    driver: bridge
-  customer-network:
+  shared-network:
     driver: bridge
