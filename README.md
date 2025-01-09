@@ -160,22 +160,6 @@ The services expose actuator endpoints for monitoring:
 - Info: `/actuator/info`
 - Prometheus metrics: `/actuator/prometheus`
 
-## Security Considerations
 
-1. Always change default passwords in production
-2. Configure proper firewall rules
-3. Enable HTTPS in production
-4. Implement proper authentication and authorization
-5. Regular security updates and patches
 
-## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
